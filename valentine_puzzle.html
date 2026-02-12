@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Day Sliding Puzzle 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ffdde1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #d63384;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: #c71f5f;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .game-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(214, 51, 132, 0.3);
+            max-width: 600px;
+        }
+
+        .puzzle-board {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
+            gap: 5px;
+            background: #ffc0cb;
+            padding: 5px;
+            border-radius: 15px;
+            margin: 0 auto;
+            width: fit-content;
+        }
+
+        .tile {
+            width: 150px;
+            height: 150px;
+            background-size: 450px 450px;
+            background-repeat: no-repeat;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .tile:hover:not(.empty) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(214, 51, 132, 0.4);
+        }
+
+        .tile.empty {
+            background: #ffe4e9;
+            cursor: default;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c239b3 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .stats {
+            margin-top: 15px;
+            text-align: center;
+            color: #d63384;
+            font-size: 1.1em;
+        }
+
+        .win-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(214, 51, 132, 0.5);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .win-message.show {
+            display: block;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .win-message h2 {
+            color: #d63384;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .puzzle-board {
+                grid-template-columns: repeat(3, 100px);
+                grid-template-rows: repeat(3, 100px);
+            }
+            
+            .tile {
+                width: 100px;
+                height: 100px;
+                background-size: 300px 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>💕 Valentine's Day Puzzle 💕</h1>
+    <p class="subtitle">Slide the tiles to complete the picture!</p>
+    
+    <div class="game-container">
+        <div class="puzzle-board" id="puzzleBoard"></div>
+        
+        <div class="controls">
+            <button onclick="shufflePuzzle()">🔀 Shuffle</button>
+            <button onclick="resetPuzzle()">🔄 Reset</button>
+        </div>
+        
+        <div class="stats">
+            <div>Moves: <span id="moveCount">0</span></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="win-message" id="winMessage">
+        <h2>🎉 You Did It! 🎉</h2>
+        <p style="color: #c71f5f; font-size: 1.2em; margin-bottom: 20px;">
+            Puzzle completed in <span id="finalMoves">0</span> moves!<br>
+            Happy Valentine's Day! ❤️
+        </p>
+        <button onclick="closeWinMessage()">Play Again</button>
+    </div>
+
+    <script>
+        let tiles = [];
+        let emptyIndex = 8;
+        let moves = 0;
+        const imagePath = 'valentine_puzzle_cartoon.png';
+
+        // Initialize the puzzle
+        function initPuzzle() {
+            const board = document.getElementById('puzzleBoard');
+            board.innerHTML = '';
+            tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            
+            for (let i = 0; i < 9; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.dataset.index = i;
+                tile.onclick = () => moveTile(i);
+                board.appendChild(tile);
+            }
+            
+            updateBoard();
+        }
+
+        // Update the visual board
+        function updateBoard() {
+            const tileElements = document.querySelectorAll('.tile');
+            
+            tileElements.forEach((tile, index) => {
+                const tileNumber = tiles[index];
+                
+                if (tileNumber === 8) {
+                    tile.className = 'tile empty';
+                    tile.style.backgroundImage = 'none';
+                    emptyIndex = index;
+                } else {
+                    tile.className = 'tile';
+                    tile.style.backgroundImage = `url('${imagePath}')`;
+                    
+                    // Calculate which piece of the image to show
+                    // tileNumber represents the original position (0-8)
+                    const row = Math.floor(tileNumber / 3);
+                    const col = tileNumber % 3;
+                    
+                    // Set background position to show the correct slice
+                    // Each tile is 150px, total image shown is 450px (3 tiles)
+                    // Position needs to be negative to shift the image
+                    const xPos = col * 150;
+                    const yPos = row * 150;
+                    tile.style.backgroundPosition = `-${xPos}px -${yPos}px`;
+                }
+            });
+        }
+
+        // Check if a tile can move
+        function canMove(index) {
+            const emptyRow = Math.floor(emptyIndex / 3);
+            const emptyCol = emptyIndex % 3;
+            const tileRow = Math.floor(index / 3);
+            const tileCol = index % 3;
+            
+            return (Math.abs(emptyRow - tileRow) === 1 && emptyCol === tileCol) ||
+                   (Math.abs(emptyCol - tileCol) === 1 && emptyRow === tileRow);
+        }
+
+        // Move a tile
+        function moveTile(index) {
+            if (canMove(index)) {
+                [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+                moves++;
+                document.getElementById('moveCount').textContent = moves;
+                updateBoard();
+                checkWin();
+            }
+        }
+
+        // Check if puzzle is solved
+        function checkWin() {
+            const solved = tiles.every((tile, index) => tile === index);
+            if (solved && moves > 0) {
+                setTimeout(() => {
+                    document.getElementById('finalMoves').textContent = moves;
+                    document.getElementById('overlay').className = 'overlay show';
+                    document.getElementById('winMessage').className = 'win-message show';
+                }, 300);
+            }
+        }
+
+        // Close win message
+        function closeWinMessage() {
+            document.getElementById('overlay').className = 'overlay';
+            document.getElementById('winMessage').className = 'win-message';
+            shufflePuzzle();
+        }
+
+        // Shuffle the puzzle
+        function shufflePuzzle() {
+            // Reset moves
+            moves = 0;
+            document.getElementById('moveCount').textContent = moves;
+            
+            // Perform random valid moves
+            for (let i = 0; i < 200; i++) {
+                const validMoves = [];
+                
+                for (let j = 0; j < 9; j++) {
+                    if (canMove(j)) {
+                        validMoves.push(j);
+                    }
+                }
+                
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                [tiles[randomMove], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[randomMove]];
+                emptyIndex = randomMove;
+            }
+            
+            updateBoard();
+        }
+
+        // Reset to solved state
+        function resetPuzzle() {
+            tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            moves = 0;
+            document.getElementById('moveCount').textContent = moves;
+            updateBoard();
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            initPuzzle();
+            shufflePuzzle();
+        };
+    </script>
+</body>
+</html>
