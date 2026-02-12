@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Valetine's Day 💕</title>
+    <title>Happy Valentine's Day 💕</title>
     <style>
         * {
             margin: 0;
@@ -170,11 +170,11 @@
             h1 {
                 font-size: 2em;
             }
-            
+
             .subtitle {
                 font-size: 1em;
             }
-            
+
             .game-container {
                 padding: 20px;
             }
@@ -184,15 +184,15 @@
 <body>
     <h1>💕 Valentine's Day Puzzle 💕</h1>
     <p class="subtitle">Slide the tiles to complete the picture!</p>
-    
+
     <div class="game-container">
         <div class="puzzle-board" id="puzzleBoard"></div>
-        
+
         <div class="controls">
             <button onclick="shufflePuzzle()">🔀 Shuffle</button>
-            <button onclick="resetPuzzle()">🔄 Reset</button>
+            <button onclick="resetPuzzle()"> I give up</button>
         </div>
-        
+
         <div class="stats">
             <div>Moves: <span id="moveCount">0</span></div>
         </div>
@@ -218,7 +218,7 @@
             const board = document.getElementById('puzzleBoard');
             board.innerHTML = '';
             tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-            
+
             for (let i = 0; i < 9; i++) {
                 const tile = document.createElement('div');
                 tile.className = 'tile';
@@ -226,17 +226,17 @@
                 tile.onclick = () => moveTile(i);
                 board.appendChild(tile);
             }
-            
+
             updateBoard();
         }
 
         // Update the visual board
         function updateBoard() {
             const tileElements = document.querySelectorAll('.tile');
-            
+
             tileElements.forEach((tile, index) => {
                 const tileNumber = tiles[index];
-                
+
                 if (tileNumber === 8) {
                     tile.className = 'tile empty';
                     tile.innerHTML = '';
@@ -255,7 +255,7 @@
             const emptyCol = emptyIndex % 3;
             const tileRow = Math.floor(index / 3);
             const tileCol = index % 3;
-            
+
             return (Math.abs(emptyRow - tileRow) === 1 && emptyCol === tileCol) ||
                    (Math.abs(emptyCol - tileCol) === 1 && emptyRow === tileRow);
         }
@@ -295,22 +295,22 @@
             // Reset moves
             moves = 0;
             document.getElementById('moveCount').textContent = moves;
-            
+
             // Perform random valid moves
             for (let i = 0; i < 200; i++) {
                 const validMoves = [];
-                
+
                 for (let j = 0; j < 9; j++) {
                     if (canMove(j)) {
                         validMoves.push(j);
                     }
                 }
-                
+
                 const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
                 [tiles[randomMove], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[randomMove]];
                 emptyIndex = randomMove;
             }
-            
+
             updateBoard();
         }
 
