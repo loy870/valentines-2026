@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Valentine's Day 💕</title>
+    <title>Happy Valentine's 💕</title>
     <style>
         * {
             margin: 0;
@@ -133,6 +133,7 @@
             box-shadow: 0 10px 50px rgba(214, 51, 132, 0.5);
             text-align: center;
             z-index: 1000;
+            max-width: 90vw;
         }
 
         .win-message.show {
@@ -140,9 +141,33 @@
             animation: popIn 0.5s ease;
         }
 
+        .win-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 15px;
+            margin: 20px auto;
+            box-shadow: 0 8px 30px rgba(214, 51, 132, 0.4);
+            animation: imageReveal 1s ease;
+        }
+
         @keyframes popIn {
             0% { transform: translate(-50%, -50%) scale(0); }
             100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes imageReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
         }
 
         .win-message h2 {
@@ -190,7 +215,7 @@
 
         <div class="controls">
             <button onclick="shufflePuzzle()">🔀 Shuffle</button>
-            <button onclick="resetPuzzle()"> I give up</button>
+            <button onclick="resetPuzzle()">🔄 Reset</button>
         </div>
 
         <div class="stats">
@@ -201,6 +226,7 @@
     <div class="overlay" id="overlay"></div>
     <div class="win-message" id="winMessage">
         <h2>🎉 You Did It! 🎉</h2>
+        <img src="valentine_puzzle_cartoon.png" alt="Complete Picture" class="win-image">
         <p style="color: #c71f5f; font-size: 1.2em; margin-bottom: 20px;">
             Puzzle completed in <span id="finalMoves">0</span> moves!<br>
             Happy Valentine's Day! ❤️
